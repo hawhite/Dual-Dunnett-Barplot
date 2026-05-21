@@ -15,6 +15,7 @@ uptl = defaultsettings{2}; % upper tiledlayout size
 lwrtl = defaultsettings{3}; % lower tiledlayout size
 cmap_annotations = defaultsettings{4}; % annotations colormap
 
+numcomparisons = size(data,2)*size(data,3)-size(data,3) + (size(data,3)-1)*size(data,2);
 
 
 % Input Validation
@@ -27,13 +28,10 @@ plot_means = squeeze(mean(data, 1, "omitmissing"));
 plot_sems = squeeze(std(data, 0, 1,"omitmissing")) ./ squeeze(sqrt(sum(~isnan(data),1)));
 
 % Position Axes
-% ax1 = axes('Position', [0.12, 0.42, 0.82, 0.52]);
-% ax2 = axes('Position', [0.12, 0.05, 0.82, 0.35]);
 tiledlayout(tl(1),tl(2),"Padding","tight","TileSpacing","none");
 
 
 % Plot Bars
-% axes(ax1); % Make ax1 active
 ax1 = nexttile(uptl);cla;
 b = bar(plot_means', 'grouped', 'EdgeColor', 'k','BarWidth', 1, 'FaceColor','flat','CData',cmap);
 hold on;
@@ -50,12 +48,10 @@ for i = 1:num_conc
     x_coords = b(i).XEndPoints;
     errorbar(x_coords, plot_means(i,:), repmat(nan,1,length(plot_means(i,:))), plot_sems(i,:), 'k', 'LineStyle', 'none', 'LineWidth', 1, 'CapSize',2);
 end
-% set(gca, 'Layer', 'top'); 
 grid off;
 set(ax1, 'XTickLabel', {});
 
 % Make Annotations using Dunnett's Test
-% axes(ax2); % Make ax2 active
 ax2 = nexttile(lwrtl);cla;
 hold on;
 axis off;
@@ -100,8 +96,6 @@ for c = 1:num_conc
         end
         text(mean([bar_x_matrix(1,c),bar_x_matrix(i+1,c)]), track_y + txtoffset, p_to_stars(mc(i,end)), 'HorizontalAlignment', 'center', ...
         'Color', track_col,'FontWeight', 'normal');
-        % text(mean([bar_x_matrix(1,c),bar_x_matrix(i+1,c)]), track_y, p_to_stars(mc(i,end)), 'HorizontalAlignment', 'center', 'VerticalAlignment','middle', ...
-        % 'Color', track_col, 'FontSize', 8, 'FontWeight', 'normal');
         plot([bar_x_matrix(1,c),bar_x_matrix(i+1,c)], [track_y+offset, track_y+offset], '-', 'Color', track_col, 'LineWidth', 1);
     end
 end
@@ -120,7 +114,6 @@ for g = 1:num_gt
     gt_bars_x = bar_x_matrix(g, :);
     pad = 0.12;
     plot([min(gt_bars_x)-pad, max(gt_bars_x)+pad], [y_genotype+0.4, y_genotype+0.4], '-k', 'LineWidth', 1);
-    % text(mean(gt_bars_x), y_genotype, genotypes{g}, 'HorizontalAlignment', 'center', 'FontWeight', 'normal', 'FontSize', 10);
     text(mean(gt_bars_x), y_genotype, genotypes{g}, 'HorizontalAlignment', 'center', 'FontWeight', 'normal');
 end
 
@@ -128,7 +121,6 @@ end
 xlim(xlim(ax1)); % Match X-limits to the bar plot
 ylim([0, max(pw_dunnett_tracks)+1.3]);  % Scale annotations area of plot
 
-% linkaxes([ax1, ax2], 'x');
 end
 
 function stars = p_to_stars(p)
@@ -141,5 +133,5 @@ end
 
 function mc = returnDunnettMultCompareStats(data)
 [p,anovatab,stats] = anova1(data(:,:,1),[],"off");
-mc = multcompare(stats,"ControlGroup",1,"Approximate",1,"CriticalValueType","dunnett","Display","off","Alpha",0.05/12);
+mc = multcompare(stats,"ControlGroup",1,"Approximate",1,"CriticalValueType","dunnett","Display","off");
 end
